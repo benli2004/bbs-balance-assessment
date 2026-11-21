@@ -55,6 +55,15 @@ python web/app.py                  # demo app on http://127.0.0.1:5000
 
 Training uses mixed precision and expects a CUDA device when available. A trained checkpoint (`.pth`) is intentionally excluded from the repository — see `data/README.md` for the dataset and checkpoint situation.
 
+## Testing
+
+```bash
+pip install pytest
+pytest -q
+```
+
+`tests/test_model.py` checks that both heads return the expected shapes and that the score head emits one logit per BBS level (0–4).
+
 ## Limitations
 
 - **Small, homogeneous dataset.** 295 raw videos from four participants aged 20–30. Not representative of the target clinical population.
