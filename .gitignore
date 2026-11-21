@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+
+# Model checkpoints and logs
+checkpoints/
+wandb/
+*.pth
+*.pt
+
+# Data (see data/README.md — recordings are not redistributed)
+data/raw/
+data/splits/
+data/processed/
+*.mp4
+*.avi
+*.mov
+
+# Web app runtime
+web/flask_session/
+web/uploads/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

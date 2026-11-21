@@ -1,0 +1,12 @@
+data:
+  root_dir: ""
+  frame_stride: 1
+  target_frames: 16
+  resize:
+    - 224
+    - 224
+  train_split: "data/splits/train.json"
+  val_split: "data/splits/val.json"
+  test_split: "data/splits/test.json"
+
+

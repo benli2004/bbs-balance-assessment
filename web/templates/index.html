@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BBS 動作品質評估</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --bg-primary: #f8fafc;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --radius: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        h1 { font-size: 28px; font-weight: 700; }
+        .subtitle { color: var(--text-secondary); font-size: 15px; margin-top: 4px; }
+
+        .model-status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-top: 12px;
+        }
+        .model-status.ready { background: #d1fae5; color: #065f46; }
+        .model-status.not-ready { background: #fee2e2; color: #991b1b; }
+
+        /* Landing Page */
+        .landing-page {
+            min-height: 70vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .landing-title { font-size: 48px; font-weight: 700; margin-bottom: 16px; }
+        .landing-subtitle { font-size: 18px; color: var(--text-secondary); margin-bottom: 40px; }
+        .enter-btn {
+            padding: 16px 48px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .enter-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4); }
+        .main-content { display: none; }
+        .main-content.visible { display: block; }
+
+        /* Tasks Grid - 7 blocks */
+        .tasks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .task-card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+            transition: all 0.2s;
+        }
+        .task-card:hover { box-shadow: var(--shadow-lg); }
+
+        .task-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .task-number {
+            width: 36px;
+            height: 36px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .task-title { font-size: 15px; font-weight: 600; }
+
+        .upload-box {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 12px;
+        }
+        .upload-box:hover { border-color: var(--primary); background: #f5f3ff; }
+        .upload-box.has-file { border-color: var(--success); border-style: solid; background: #f0fdf4; }
+
+        .upload-icon {
+            width: 36px;
+            height: 36px;
+            margin: 0 auto 8px;
+            color: var(--secondary);
+        }
+        .upload-box.has-file .upload-icon { color: var(--success); }
+
+        .upload-label { font-size: 13px; color: var(--text-secondary); }
+        .upload-box.has-file .upload-label { color: var(--success); font-weight: 500; }
+        .file-input { display: none; }
+        .file-name { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+
+        .predict-btn {
+            width: 100%;
+            padding: 12px 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .predict-btn:hover:not(:disabled) { background: var(--primary-dark); }
+        .predict-btn:disabled { background: var(--secondary); cursor: not-allowed; opacity: 0.6; }
+        .predict-btn svg { width: 16px; height: 16px; }
+
+        .loading-spinner {
+            display: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        .loading-spinner.visible { display: block; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Task Result */
+        .task-result {
+            margin-top: 12px;
+            padding: 12px;
+            background: var(--bg-primary);
+            border-radius: var(--radius);
+            text-align: center;
+            display: none;
+        }
+        .task-result.visible { display: block; }
+        .task-score { font-size: 28px; font-weight: 700; color: var(--primary); }
+
+        .score-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 6px;
+        }
+        .score-badge.excellent { background: #d1fae5; color: #065f46; }
+        .score-badge.good { background: #dbeafe; color: #1e40af; }
+        .score-badge.average { background: #fef3c7; color: #92400e; }
+        .score-badge.poor { background: #fee2e2; color: #991b1b; }
+        .score-badge.very-poor { background: #f3f4f6; color: #374151; }
+
+        /* Risk Summary Section */
+        .risk-section {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            padding: 32px;
+            text-align: center;
+            display: none;
+        }
+        .risk-section.visible { display: block; }
+
+        .risk-title { font-size: 20px; font-weight: 600; margin-bottom: 24px; }
+
+        .risk-card {
+            border-radius: var(--radius);
+            padding: 32px;
+            margin-bottom: 24px;
+        }
+        .risk-card.high { background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border: 3px solid #ef4444; }
+        .risk-card.medium { background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 3px solid #f59e0b; }
+        .risk-card.low { background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border: 3px solid #10b981; }
+
+        .risk-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+        }
+        .risk-card.high .risk-icon { background: #ef4444; }
+        .risk-card.medium .risk-icon { background: #f59e0b; }
+        .risk-card.low .risk-icon { background: #10b981; }
+        .risk-icon svg { width: 32px; height: 32px; color: white; }
+
+        .risk-text { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+        .risk-card.high .risk-text { color: #991b1b; }
+        .risk-card.medium .risk-text { color: #92400e; }
+        .risk-card.low .risk-text { color: #065f46; }
+
+        .risk-desc { font-size: 14px; color: var(--text-secondary); }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+        .summary-item {
+            background: var(--bg-primary);
+            border-radius: var(--radius);
+            padding: 20px;
+            text-align: center;
+        }
+        .summary-value { font-size: 36px; font-weight: 700; color: var(--primary); }
+        .summary-label { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+
+        @media (max-width: 768px) {
+            .landing-title { font-size: 32px; }
+            .summary-grid { grid-template-columns: 1fr; }
+            .tasks-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Landing Page -->
+        <div class="landing-page" id="landingPage">
+            <h1 class="landing-title">BBS 動作品質評估</h1>
+            <p class="landing-subtitle">上傳影片，AI 自動評估動作品質</p>
+            <button class="enter-btn" onclick="enterApp()">開始使用</button>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content" id="mainContent">
+            <header>
+                <h1>BBS 動作品質評估</h1>
+                <p class="subtitle">為每個動作上傳影片並評估</p>
+                <div id="modelStatus" class="model-status"></div>
+            </header>
+
+            <div class="tasks-grid" id="tasksGrid"></div>
+
+            <!-- Risk Summary -->
+            <div class="risk-section" id="riskSection">
+                <h2 class="risk-title">跌倒風險評估</h2>
+                <div class="risk-card" id="riskCard">
+                    <div class="risk-icon" id="riskIcon"></div>
+                    <div class="risk-text" id="riskText"></div>
+                    <div class="risk-desc" id="riskDesc"></div>
+                </div>
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <div class="summary-value" id="totalScore">0</div>
+                        <div class="summary-label">總分 (滿分 28)</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value" id="avgScore">0</div>
+                        <div class="summary-label">平均分 (滿分 4)</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value" id="completedCount">0</div>
+                        <div class="summary-label">已完成動作</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const taskNames = [
+            "坐到站立",
+            "站立2分鐘",
+            "雙臂交叉坐姿",
+            "站立到坐下",
+            "撿東西",
+            "單腳站立",
+            "走台階"
+        ];
+
+        const modelLoaded = {{ 'true' if model_loaded else 'false' }};
+        const taskFiles = Array(7).fill(null);
+        const taskResults = Array(7).fill(null);
+
+        function enterApp() {
+            document.getElementById('landingPage').style.display = 'none';
+            document.getElementById('mainContent').classList.add('visible');
+            updateModelStatus();
+            initTasks();
+        }
+
+        function updateModelStatus() {
+            const el = document.getElementById('modelStatus');
+            el.textContent = modelLoaded ? '✓ 模型已加載' : '⚠ 模型未加載';
+            el.className = 'model-status ' + (modelLoaded ? 'ready' : 'not-ready');
+        }
+
+        function initTasks() {
+            const grid = document.getElementById('tasksGrid');
+            grid.innerHTML = taskNames.map((name, idx) => `
+                <div class="task-card">
+                    <div class="task-header">
+                        <div class="task-number">${idx + 1}</div>
+                        <div class="task-title">${name}</div>
+                    </div>
+                    <div class="upload-box" id="uploadBox${idx}" onclick="document.getElementById('fileInput${idx}').click()">
+                        <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <div class="upload-label" id="uploadLabel${idx}">點擊上傳影片</div>
+                        <div class="file-name" id="fileName${idx}"></div>
+                        <input type="file" class="file-input" id="fileInput${idx}" accept="video/*" onchange="handleFileSelect(${idx}, this.files)">
+                    </div>
+                    <button class="predict-btn" id="predictBtn${idx}" onclick="runPrediction(${idx})" disabled>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        評估
+                        <div class="loading-spinner" id="loading${idx}"></div>
+                    </button>
+                    <div class="task-result" id="taskResult${idx}">
+                        <div class="task-score" id="taskScore${idx}">-</div>
+                        <div id="taskScoreLabel${idx}"></div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Drag and drop
+            taskNames.forEach((_, idx) => {
+                const box = document.getElementById(`uploadBox${idx}`);
+                box.addEventListener('dragover', e => { e.preventDefault(); box.classList.add('has-file'); });
+                box.addEventListener('dragleave', () => box.classList.remove('has-file'));
+                box.addEventListener('drop', e => { e.preventDefault(); handleFileSelect(idx, e.dataTransfer.files); });
+            });
+        }
+
+        function handleFileSelect(idx, files) {
+            if (files.length === 0) return;
+            taskFiles[idx] = files[0];
+            const box = document.getElementById(`uploadBox${idx}`);
+            const label = document.getElementById(`uploadLabel${idx}`);
+            const name = document.getElementById(`fileName${idx}`);
+            const btn = document.getElementById(`predictBtn${idx}`);
+            const result = document.getElementById(`taskResult${idx}`);
+
+            box.classList.add('has-file');
+            label.textContent = '已選擇';
+            name.textContent = files[0].name;
+            btn.disabled = !modelLoaded;
+            result.classList.remove('visible');
+        }
+
+        async function runPrediction(idx) {
+            if (!taskFiles[idx]) return;
+
+            const loading = document.getElementById(`loading${idx}`);
+            const btn = document.getElementById(`predictBtn${idx}`);
+            loading.classList.add('visible');
+            btn.disabled = true;
+
+            try {
+                const formData = new FormData();
+                formData.append('video', taskFiles[idx]);
+                formData.append('task_index', idx);
+
+                const res = await fetch('/predict_single', { method: 'POST', body: formData });
+                const data = await res.json();
+
+                if (res.ok) {
+                    taskResults[idx] = data.score;
+                    const scoreEl = document.getElementById(`taskScore${idx}`);
+                    const labelEl = document.getElementById(`taskScoreLabel${idx}`);
+                    const resultEl = document.getElementById(`taskResult${idx}`);
+
+                    scoreEl.textContent = data.score;
+
+                    const scoreLabels = ['非常差', '差', '中等', '良好', '優秀'];
+                    const scoreClass = data.score >= 4 ? 'excellent' : data.score >= 3 ? 'good' : data.score >= 2 ? 'average' : data.score >= 1 ? 'poor' : 'very-poor';
+                    labelEl.innerHTML = `<span class="score-badge ${scoreClass}">${scoreLabels[data.score]}</span>`;
+
+                    resultEl.classList.add('visible');
+                    updateRiskSummary();
+                }
+            } finally {
+                loading.classList.remove('visible');
+                btn.disabled = !modelLoaded;
+            }
+        }
+
+        function updateRiskSummary() {
+            const completed = taskResults.filter(r => r !== null);
+            if (completed.length === 0) {
+                document.getElementById('riskSection').classList.remove('visible');
+                return;
+            }
+
+            document.getElementById('riskSection').classList.add('visible');
+
+            const total = completed.reduce((sum, r) => sum + r, 0);
+            const avg = (total / completed.length).toFixed(1);
+
+            document.getElementById('totalScore').textContent = total;
+            document.getElementById('avgScore').textContent = avg;
+            document.getElementById('completedCount').textContent = completed.length;
+
+            const riskCard = document.getElementById('riskCard');
+            const riskIcon = document.getElementById('riskIcon');
+            const riskText = document.getElementById('riskText');
+            const riskDesc = document.getElementById('riskDesc');
+
+            riskCard.classList.remove('high', 'medium', 'low');
+
+            if (avg <= 2) {
+                riskCard.classList.add('high');
+                riskText.textContent = '高風險';
+                riskDesc.textContent = '跌倒風險較高，建議密切關注';
+                riskIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>`;
+            } else if (avg <= 3) {
+                riskCard.classList.add('medium');
+                riskText.textContent = '中風險';
+                riskDesc.textContent = '有跌倒風險，建議定期追蹤';
+                riskIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+            } else {
+                riskCard.classList.add('low');
+                riskText.textContent = '低風險';
+                riskDesc.textContent = '平衡能力良好';
+                riskIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+[project]
+name = "bbs_quality_assessment"
+version = "0.1.0"
+description = "Berg Balance Scale (BBS) 视频 AI 评分项目"
+authors = [{name = "Your Name"}]
+requires-python = ">=3.9"
+dependencies = [
+    "torch>=2.0.0",
+    "torchvision>=0.15.0",
+    "opencv-python>=4.8.0",
+    "decord>=0.6.0",
+    "albumentations>=1.3.0",
+    "wandb>=0.15.0",
+    "hydra-core>=1.3.0",
+    "fastapi>=0.115.0",
+    "uvicorn>=0.30.0",
+    "pydantic>=2.9.0",
+    "scikit-learn>=1.5.0",
+    "numpy>=1.26.4",
+    "flask>=2.3.0",
+    "flask-session>=0.5.0",
+    "pillow>=10.0.0",
+    "tqdm>=4.65.0",
+    "pyyaml>=6.0",
+]
+
+[tool.setuptools]
+packages = ["bbs_quality_assessment"]
+
+
